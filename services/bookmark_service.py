@@ -35,3 +35,7 @@ class BookmarkService:
     def get_bookmark_by_number(self, number: int) -> Optional[Bookmark]:
         """Get bookmark by number."""
         return self.repository.get_by_number(number)
+        
+    def search_bookmarks(self, keywords: str) -> List[Bookmark]:
+        """Search bookmarks by keywords."""
+        return self.repository.search_bookmarks(keywords)

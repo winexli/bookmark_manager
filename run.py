@@ -1,17 +1,10 @@
+# run.py
 from database.db_manager import DatabaseManager
 from repositories.bookmark_repository import BookmarkRepository
 from services.bookmark_service import BookmarkService
 
-def print_menu():
-    print("\nBookmark Manager Menu:")
-    print("1. Add bookmark")
-    print("2. Get bookmark")
-    print("3. Delete bookmark")
-    print("4. Random bookmark")
-    print("5. Exit")
-    print("\nEnter your choice (1-5): ")
-
 def get_valid_number(prompt: str, max_num: int) -> int:
+    """Validate user input to ensure it's a valid number within range."""
     while True:
         try:
             num = int(input(prompt))
@@ -20,6 +13,16 @@ def get_valid_number(prompt: str, max_num: int) -> int:
             print(f"Please enter a number between 1 and {max_num}")
         except ValueError:
             print("Please enter a valid number")
+
+def print_menu():
+    print("\nBookmark Manager Menu:")
+    print("1. Add bookmark")
+    print("2. Get bookmark")
+    print("3. Delete bookmark")
+    print("4. Random bookmark")
+    print("5. Search bookmarks")
+    print("6. Exit")
+    print("\nEnter your choice (1-6): ")
 
 def main():
     db_manager = DatabaseManager()
@@ -91,6 +94,26 @@ def main():
                 print("No bookmarks available")
 
         elif choice == "5":
+            keywords = input("Enter search keywords (space-separated): ")
+            if not keywords.strip():
+                print("Please enter some keywords to search")
+                continue
+                
+            results = service.search_bookmarks(keywords)
+            
+            if results:
+                print(f"\nFound {len(results)} matching bookmarks:")
+                for bookmark in results:
+                    print("\n------------------------")
+                    print(f"ID: {bookmark.custom_id}")
+                    print(f"Title: {bookmark.title}")
+                    print(f"URL: {bookmark.url}")
+                    print(f"Description: {bookmark.description}")
+                    print(f"Tags: {', '.join(bookmark.tags)}")
+            else:
+                print("No matching bookmarks found")
+
+        elif choice == "6":
             print("Goodbye!")
             break
 

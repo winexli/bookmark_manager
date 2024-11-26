@@ -174,3 +174,49 @@ class BookmarkRepository:
                     tags=tags
                 )
             return None
+
+    def search_bookmarks(self, keywords: str) -> List[Bookmark]:
+        """Search bookmarks by keywords in title, description, and tags."""
+        with self.db_manager.get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Split keywords into individual terms
+            terms = [f"%{term.strip()}%" for term in keywords.split()]
+            
+            # Create SQL conditions for each term
+            conditions = []
+            params = []
+            for term in terms:
+                conditions.append('''
+                    (LOWER(b.title) LIKE LOWER(?) OR 
+                     LOWER(b.description) LIKE LOWER(?) OR 
+                     LOWER(GROUP_CONCAT(t.name)) LIKE LOWER(?))
+                ''')
+                params.extend([term, term, term])
+            
+            query = '''
+                SELECT b.*, GROUP_CONCAT(t.name) as tags
+                FROM bookmarks b
+                LEFT JOIN bookmark_tags bt ON b.id = bt.bookmark_id
+                LEFT JOIN tags t ON bt.tag_id = t.id
+                GROUP BY b.id
+                HAVING {}
+                ORDER BY b.sequence
+            '''.format(' AND '.join(conditions))
+            
+            cursor.execute(query, params)
+            results = cursor.fetchall()
+            
+            bookmarks = []
+            for row in results:
+                tags = row['tags'].split(',') if row['tags'] else []
+                bookmarks.append(Bookmark(
+                    id=row['id'],
+                    custom_id=row['custom_id'],
+                    url=row['url'],
+                    title=row['title'],
+                    description=row['description'],
+                    tags=tags
+                ))
+            
+            return bookmarks
